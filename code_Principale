@@ -1,0 +1,65 @@
+#include <Arduino.h>
+#include "sonde.h"
+#include "affichage.h" 
+#include <LiquidCrystal.h>
+
+
+
+
+int BouttonDemar ; // Bouton pour demareer le system
+int PinAnalogiqueHumidite=A0;       //Broche Analogique de mesure d'humidité
+int PinNumeriqueHumidite=2;        //Broche Numérique mesure de l'humidité
+int Pompe=3;    //LED témoin de seuilde  sécheresse
+int EV = 4; // Electreovqnne pour le retour de vers l'aquarium 
+
+int hsol;  //Humidite du sol, mesure analogique
+int secheresse;  //0 ou 1 si seuil atteint*
+int HumiditeSol;
+
+void setup(){ 
+    // Initialisation 
+    Serial.begin(9600);  //Connection série à 9600 baud
+    pinMode(PinAnalogiqueHumidite, INPUT);       //pin A0 en entrée analogique
+    pinMode(PinNumeriqueHumidite, INPUT);  //pin 3 en entrée numérique
+    pinMode(Pompe, OUTPUT);   //Pompe d'arrosage 
+    pinMode(EV, OUTPUT);
+    pinMode( BouttonDemar, OUTPUT);
+    
+         do  {
+                   BouttonDemar= digitalRead(5);
+          
+                 }while( BouttonDemar!=HIGH);
+                 
+           }
+     
+             
+
+void loop() { 
+             TEMP();
+             AFFICHAGE();
+             int hsol = analogRead(PinAnalogiqueHumidite); // Lit la tension analogique
+             HumiditeSol = map(hsol, 0, 1023, 100, 0);
+
+             secheresse = digitalRead(PinNumeriqueHumidite); 
+             Serial.print(hsol ); // afficher la mesure
+             Serial.print("\t Hubidite du sol = ");
+             Serial.println(HumiditeSol ); // afficher la mesure
+    
+    
+    
+    
+  Serial.print("  ");
+
+    Serial.println(secheresse);  //0 ou 1 si le seuil est dépassé
+    if (secheresse==1) 
+      {
+        digitalWrite(Pompe, HIGH);   // Pompe allumée
+        digitalWrite(EV, LOW); // L'electrovanne ferme le circuit de retour de l'eau 
+      }
+      else {
+      digitalWrite(Pompe, LOW);   // Pompe off
+      digitalWrite(EV, HIGH); // ouverture du circuit retour de l'eau vers la bac de" poisson
+      
+       }
+    delay(200); //delai entre 2 mesures 20ms
+}
